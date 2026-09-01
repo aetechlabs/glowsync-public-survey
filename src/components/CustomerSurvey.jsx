@@ -40,6 +40,8 @@ export default function CustomerSurvey() {
         paymentModel: formData.get("paymentModel"),
         homePremium: formData.get("premium"),
         recommendation: formData.get("recommendation"),
+        joinWaitlist: formData.get("joinWaitlist") === "on",
+        consentContact: formData.get("consentContact") === "on",
       }
     };
 
@@ -283,6 +285,21 @@ export default function CustomerSurvey() {
               <p className="text-muted text-sm mb-3">Know a great gym, salon, or barbershop we should partner with? Let us know!</p>
               <input type="text" name="recommendation" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Provider Name & Location/Contact" />
             </div>
+          </div>
+        </section>
+
+        {/* Section 6 */}
+        <section>
+          <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">6. Get Involved</h3>
+          <div className="space-y-4">
+            <label className="flex items-start gap-3 text-sm cursor-pointer bg-primary/5 p-4 rounded-md border border-primary/20">
+              <input type="checkbox" name="joinWaitlist" className="accent-primary w-5 h-5 mt-0.5 border-muted/20" />
+              <span><strong>Join the GlowSync Waitlist!</strong> Get early access, exclusive founding-member perks, and be the first to know when we launch in your city.</span>
+            </label>
+            <label className="flex items-start gap-3 text-sm cursor-pointer bg-background p-4 rounded-md border border-muted/20">
+              <input type="checkbox" name="consentContact" className="accent-primary w-5 h-5 mt-0.5 border-muted/20" />
+              <span><strong>Keep in touch.</strong> I consent to being contacted via email or phone for beta testing, product feedback, or exclusive updates.</span>
+            </label>
           </div>
         </section>
 
