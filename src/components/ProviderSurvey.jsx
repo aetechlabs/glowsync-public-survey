@@ -5,6 +5,7 @@ export default function ProviderSurvey() {
   const [showModal, setShowModal] = useState(false);
   const [messageModal, setMessageModal] = useState({ show: false, type: 'error', message: '' });
   const [showOtherTool, setShowOtherTool] = useState(false);
+  const [category, setCategory] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,7 +108,7 @@ export default function ProviderSurvey() {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm text-text font-medium mb-1">Provider Category</label>
-              <select name="category" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50">
+              <select name="category" value={category} onChange={(e) => setCategory(e.target.value)} required className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50">
                 <option value="">Select a category</option>
                 <option value="gym">Gym/Fitness Center</option>
                 <option value="barbershop">Barbershop</option>
@@ -131,10 +132,24 @@ export default function ProviderSurvey() {
             
             <div className="col-span-1 md:col-span-2">
               <label className="block text-sm text-text font-medium mb-2">Capacity & Scale</label>
-              <div className="grid grid-cols-3 gap-4">
-                <input type="number" name="capacityChairs" placeholder="Chairs/Stations" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
-                <input type="number" name="capacityGym" placeholder="Gym Capacity" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
-                <input type="number" name="capacityStaff" placeholder="Active Staff" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {category === 'gym' && (
+                  <input type="number" name="capacityGym" placeholder="Gym Capacity (Max People)" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
+                )}
+                {(category === 'barbershop' || category === 'salon') && (
+                  <input type="number" name="capacityChairs" placeholder={category === 'barbershop' ? 'Barber Chairs' : 'Salon Stations'} className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
+                )}
+                {category === 'spa' && (
+                  <input type="number" name="capacityChairs" placeholder="Treatment Rooms" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
+                )}
+                {category !== '' && (
+                  <input type="number" name="capacityStaff" placeholder="Active Staff / Providers" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
+                )}
+                {category === '' && (
+                  <div className="col-span-2 md:col-span-3 text-sm text-muted italic p-3 bg-muted/5 rounded-md border border-muted/10">
+                    Please select a Provider Category above to specify capacity.
+                  </div>
+                )}
               </div>
             </div>
           </div>
