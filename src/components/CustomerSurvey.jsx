@@ -31,7 +31,8 @@ const questions = [
     { value: 'Hybrid', desc: 'Basic base subscription with discounted per-visit add-ons.' }
   ]},
   { id: 'premium', type: 'radio', label: 'How much extra are you willing to pay for direct home delivery?', options: ['+20%', '+50%', '+100%'] },
-  { id: 'recommendation', type: 'text', label: 'Know a great gym, salon, or barbershop we should partner with?', placeholder: 'Provider Name & Location/Contact' },
+  { id: 'recommendationName', type: 'text', label: 'Know a great gym, salon, or barbershop we should partner with?', placeholder: 'Provider Name' },
+  { id: 'recommendationEmail', type: 'email', label: 'Recommended Provider Email (Optional)', placeholder: 'hello@provider.com' },
   { id: 'getInvolved', type: 'multiselect_checkboxes', label: 'Get Involved', options: [
     { value: 'joinWaitlist', label: 'Join the GlowSync Waitlist!', desc: 'Get early access, exclusive founding-member perks, and be the first to know when we launch in your city.' },
     { value: 'consentContact', label: 'Keep in touch.', desc: 'I consent to being contacted via email or phone for beta testing, product feedback, or exclusive updates.' }
@@ -74,28 +75,24 @@ export default function CustomerSurvey() {
   const submitForm = async () => {
     setIsSubmitting(true);
     
-    const payload = new FormData();
-    Object.keys(formData).forEach(key => {
-      const val = formData[key];
-      if (Array.isArray(val)) {
-        val.forEach(v => payload.append(key, v));
-      } else {
-        payload.append(key, val);
+    const payload = {
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      responses: {
+        ...formData,
+        otherService: otherServiceText,
+        joinWaitlist: formData.getInvolved?.includes('joinWaitlist'),
+        consentContact: formData.getInvolved?.includes('consentContact')
       }
-    });
-
-    if (otherServiceText) {
-      payload.append('otherService', otherServiceText);
-    }
-    
-    if (formData.getInvolved?.includes('joinWaitlist')) payload.append('joinWaitlist', 'on');
-    if (formData.getInvolved?.includes('consentContact')) payload.append('consentContact', 'on');
+    };
 
     try {
       const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/public/survey`, {
+      const response = await fetch(`${apiUrl}/api/public/surveys/customer`, {
         method: 'POST',
-        body: payload
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
