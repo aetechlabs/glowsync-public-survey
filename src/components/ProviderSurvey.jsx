@@ -1,89 +1,138 @@
 import React, { useState } from 'react';
 
+const getQuestions = (formData) => {
+  const q = [
+    { id: 'businessName', type: 'text', label: 'What is your business name?', required: true, placeholder: 'Glow Studio' },
+    { id: 'fullName', type: 'text', label: 'Owner/Manager Name?', required: true, placeholder: 'John Doe' },
+    { id: 'phone', type: 'tel', label: 'Business Phone Number?', required: true, placeholder: '+234 ...' },
+    { id: 'email', type: 'email', label: 'Business Email?', required: true, placeholder: 'hello@glowstudio.com' },
+    { id: 'category', type: 'select', label: 'What is your primary provider category?', required: true, options: [
+      { value: 'gym', label: 'Gym/Fitness Center' },
+      { value: 'barbershop', label: 'Barbershop' },
+      { value: 'salon', label: 'Hair/Beauty Salon' },
+      { value: 'spa', label: 'Wellness/Spa' },
+      { value: 'mobile', label: 'Independent Mobile Stylist/Trainer' }
+    ]},
+    { id: 'primaryAddress', type: 'text', label: 'Primary Address', placeholder: 'Main Street, Wuse 2' },
+    { id: 'branches', type: 'text', label: 'Branch Locations (if any)', placeholder: 'e.g., Maitama, Gwarinpa' },
+    { id: 'targetCities', type: 'text', label: 'Target Cities of Operation', placeholder: 'e.g., Abuja, Lagos' },
+  ];
+
+  const cat = formData.category;
+  if (cat === 'gym') {
+    q.push({ id: 'capacityGym', type: 'number', label: 'Gym Capacity (Max People)', placeholder: 'e.g., 50' });
+  } else if (cat === 'barbershop' || cat === 'salon') {
+    q.push({ id: 'capacityChairs', type: 'number', label: cat === 'barbershop' ? 'Number of Barber Chairs' : 'Number of Salon Stations', placeholder: 'e.g., 5' });
+  } else if (cat === 'spa') {
+    q.push({ id: 'capacityChairs', type: 'number', label: 'Number of Treatment Rooms', placeholder: 'e.g., 3' });
+  }
+  
+  if (cat && cat !== '') {
+    q.push({ id: 'capacityStaff', type: 'number', label: 'Active Staff / Providers', placeholder: 'e.g., 10' });
+  }
+
+  q.push(
+    { id: 'format', type: 'radio', label: 'Service Formats', options: ['In-facility only', 'Home/mobile service only', 'Both'] },
+    { id: 'operatingHours', type: 'text', label: 'Operating Hours', placeholder: 'e.g., Mon-Sat 8am-8pm' },
+    { id: 'peakTimes', type: 'text', label: 'Peak Times', placeholder: 'e.g., 5pm-8pm' },
+    { id: 'tools', type: 'multiselect_with_other', label: 'Current Management Tools', options: ['Pen & paper', 'WhatsApp', 'POS software', 'Existing booking software'] },
+    { id: 'walkInRatio', type: 'text', label: 'Walk-in vs. Appointment Ratio (%)', placeholder: 'e.g., 80% walk-in vs. 20% appointment' },
+    { id: 'challenges', type: 'multiselect', label: 'Business Challenges', options: [
+      'Off-peak empty slots or underutilized gym capacity.',
+      'Customer no-shows and last-minute cancellations.',
+      'Managing customer queues during peak hours.',
+      'Handling payment collection, reconciliation, or tracking daily income.'
+    ]},
+    { id: 'network', type: 'radio', label: 'Willingness to Accept Network Members (GlowSync subscribers)', options: ['Yes, very open', 'Need more details', 'No'] },
+    { id: 'dispatch', type: 'radio', label: 'Home Care Dispatch (Interest in sending staff for home appointments)', options: ['Yes', 'No'] },
+    { id: 'pricingSheet', type: 'textarea', label: 'Standard Pricing Sheet (Base rates for core services)', placeholder: 'e.g., standard gym day pass/monthly fee, standard haircut, washing & styling' },
+    { id: 'payoutCycle', type: 'select', label: 'Preferred Payout Cycle', options: [
+      { value: 'daily', label: 'Daily' },
+      { value: 'weekly', label: 'Weekly' },
+      { value: 'biweekly', label: 'Bi-weekly' },
+      { value: 'monthly', label: 'Monthly' }
+    ]},
+    { id: 'payoutChannel', type: 'select', label: 'Preferred Payout Channel', options: [
+      { value: 'bank', label: 'Direct bank transfer' },
+      { value: 'virtual', label: 'Virtual settlement account' }
+    ]},
+    { id: 'discount', type: 'radio', label: 'Discounting for Guaranteed Volume (Offer discounted rates to GlowSync for guaranteed foot traffic?)', options: ['Yes', 'No'] },
+    { id: 'recommendation', type: 'text', label: 'Recommend another Provider (Optional)', placeholder: 'Provider Name & Location/Contact' },
+    { id: 'getInvolved', type: 'multiselect_checkboxes', label: 'Get Involved', options: [
+      { value: 'joinWaitlist', label: 'Join the GlowSync Provider Waitlist!', desc: 'Secure your spot for early onboarding, waived early fees, and priority placement in your city when we launch.' },
+      { value: 'consentContact', label: 'Let\'s partner up.', desc: 'I consent to being contacted via email or phone for onboarding, partnership opportunities, and beta testing feedback.' }
+    ]}
+  );
+
+  return q;
+};
+
 export default function ProviderSurvey() {
+  const [formData, setFormData] = useState({});
+  const [currentStep, setCurrentStep] = useState(0);
+  const [otherToolText, setOtherToolText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [messageModal, setMessageModal] = useState({ show: false, type: 'error', message: '' });
-  const [showOtherTool, setShowOtherTool] = useState(false);
-  const [category, setCategory] = useState('');
-  const [currentStep, setCurrentStep] = useState(1);
+
+  const questions = getQuestions(formData);
+  const currentQ = questions[currentStep];
 
   const handleNext = () => {
-    if (currentStep === 1) {
-      const form = document.getElementById('provider-form');
-      if (form) {
-        const inputs = form.querySelectorAll('input[required], select[required]');
-        let valid = true;
-        inputs.forEach(input => {
-          if (!input.checkValidity()) {
-            input.reportValidity();
-            valid = false;
-          }
-        });
-        if (!valid) return;
-      }
+    if (currentQ.required && !formData[currentQ.id]) {
+      setMessageModal({ show: true, type: 'error', message: 'This field is required.' });
+      return;
     }
-    setCurrentStep(s => Math.min(6, s + 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    if (currentStep < questions.length - 1) {
+      setCurrentStep(s => s + 1);
+    } else {
+      submitForm();
+    }
   };
 
   const handlePrev = () => {
-    setCurrentStep(s => Math.max(1, s - 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentStep(s => Math.max(0, s - 1));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && currentQ.type !== 'multiselect' && currentQ.type !== 'multiselect_with_other' && currentQ.type !== 'textarea') {
+      handleNext();
+    }
+  };
 
-    const formData = new FormData(e.target);
-    const data = {
-      businessName: formData.get("businessName"),
-      fullName: formData.get("fullName"),
-      phone: formData.get("phone"),
-      email: formData.get("email"),
-      responses: {
-        category: formData.get("category"),
-        primaryAddress: formData.get("primaryAddress"),
-        branches: formData.get("branches"),
-        targetCities: formData.get("targetCities"),
-        capacityChairs: formData.get("capacityChairs"),
-        capacityGym: formData.get("capacityGym"),
-        capacityStaff: formData.get("capacityStaff"),
-        serviceFormats: formData.get("format"),
-        operatingHours: formData.get("operatingHours"),
-        peakTimes: formData.get("peakTimes"),
-        tools: formData.getAll("tools"),
-        otherTool: formData.get("otherTool"),
-        walkInRatio: formData.get("walkInRatio"),
-        challenges: formData.getAll("challenges"),
-        acceptNetwork: formData.get("network"),
-        homeDispatch: formData.get("dispatch"),
-        pricingSheet: formData.get("pricingSheet"),
-        payoutCycle: formData.get("payoutCycle"),
-        payoutChannel: formData.get("payoutChannel"),
-        discounting: formData.get("discount"),
-        recommendation: formData.get("recommendation"),
-        joinWaitlist: formData.get("joinWaitlist") === "on",
-        consentContact: formData.get("consentContact") === "on",
+  const submitForm = async () => {
+    setIsSubmitting(true);
+    
+    const payload = new FormData();
+    Object.keys(formData).forEach(key => {
+      const val = formData[key];
+      if (Array.isArray(val)) {
+        val.forEach(v => payload.append(key, v));
+      } else {
+        payload.append(key, val);
       }
-    };
+    });
+
+    if (otherToolText) {
+      payload.append('otherTool', otherToolText);
+    }
+    
+    if (formData.getInvolved?.includes('joinWaitlist')) payload.append('joinWaitlist', 'on');
+    if (formData.getInvolved?.includes('consentContact')) payload.append('consentContact', 'on');
 
     try {
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const res = await fetch(`${apiUrl}/api/public/surveys/provider`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/public/surveys/provider`, {
+        method: 'POST',
+        body: payload
       });
 
-      if (res.ok) {
-        setShowModal(true);
-        e.target.reset();
-        setShowOtherTool(false);
-      } else {
-        setMessageModal({ show: true, type: 'error', message: "Something went wrong. Please try again." });
+      if (!response.ok) {
+        throw new Error('Failed to submit survey');
       }
+
+      setShowModal(true);
     } catch (err) {
       console.error(err);
       setMessageModal({ show: true, type: 'error', message: "Failed to submit. Please check your connection." });
@@ -104,291 +153,217 @@ export default function ProviderSurvey() {
     }
   };
 
+  const handleValueChange = (val) => {
+    setFormData(prev => ({ ...prev, [currentQ.id]: val }));
+  };
+
+  const toggleArrayValue = (val) => {
+    setFormData(prev => {
+      const arr = prev[currentQ.id] || [];
+      if (arr.includes(val)) {
+        return { ...prev, [currentQ.id]: arr.filter(item => item !== val) };
+      } else {
+        return { ...prev, [currentQ.id]: [...arr, val] };
+      }
+    });
+  };
+
+  if (!currentQ) return null;
+
   return (
-    <div className="max-w-3xl mx-auto p-6 md:p-8 bg-surface shadow-soft rounded-lg">
-      <h2 className="text-2xl font-heading text-text mb-2">Provider Survey (Supply Side)</h2>
-      <p className="text-muted mb-8">Help us build the perfect platform for your business.</p>
-      
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex justify-between text-xs text-muted mb-2 font-medium">
-          <span>Step {currentStep} of 6</span>
-          <span>{Math.round((currentStep / 6) * 100)}%</span>
-        </div>
-        <div className="w-full bg-muted/10 rounded-full h-2">
-          <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${(currentStep / 6) * 100}%` }}></div>
+    <div className="max-w-3xl mx-auto p-4 w-full h-full flex flex-col justify-center animate-fade-in-up">
+      <div className="mb-12">
+        <div className="w-full bg-muted/10 rounded-full h-1.5">
+          <div className="bg-primary h-1.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentStep) / questions.length) * 100}%` }}></div>
         </div>
       </div>
 
-      <form id="provider-form" className="space-y-10" onSubmit={handleSubmit}>
-        
-        {/* Section 1 */}
-        <section className={currentStep === 1 ? 'block' : 'hidden'}>
-          <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">1. Business Profile & Operations</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Business Name</label>
-              <input type="text" name="businessName" required className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Glow Studio" />
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Owner/Manager Name</label>
-              <input type="text" name="fullName" required className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="John Doe" />
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Business Phone Number</label>
-              <input type="tel" name="phone" required className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="+234 ..." />
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Email</label>
-              <input type="email" name="email" required className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="hello@glowstudio.com" />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm text-text font-medium mb-1">Provider Category</label>
-              <select name="category" value={category} onChange={(e) => setCategory(e.target.value)} required className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50">
-                <option value="">Select a category</option>
-                <option value="gym">Gym/Fitness Center</option>
-                <option value="barbershop">Barbershop</option>
-                <option value="salon">Hair/Beauty Salon</option>
-                <option value="spa">Wellness/Spa</option>
-                <option value="mobile">Independent Mobile Stylist/Trainer</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm text-text font-medium mb-1">Primary Address</label>
-              <input type="text" name="primaryAddress" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Main Street, Wuse 2" />
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Branch Locations (if any)</label>
-              <input type="text" name="branches" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="e.g., Maitama, Gwarinpa" />
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Target Cities of Operation</label>
-              <input type="text" name="targetCities" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="e.g., Abuja, Lagos" />
-            </div>
-            
-            <div className="col-span-1 md:col-span-2">
-              <label className="block text-sm text-text font-medium mb-2">Capacity & Scale</label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {category === 'gym' && (
-                  <input type="number" name="capacityGym" placeholder="Gym Capacity (Max People)" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
-                )}
-                {(category === 'barbershop' || category === 'salon') && (
-                  <input type="number" name="capacityChairs" placeholder={category === 'barbershop' ? 'Barber Chairs' : 'Salon Stations'} className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
-                )}
-                {category === 'spa' && (
-                  <input type="number" name="capacityChairs" placeholder="Treatment Rooms" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
-                )}
-                {category !== '' && (
-                  <input type="number" name="capacityStaff" placeholder="Active Staff / Providers" className="w-full p-3 rounded-md bg-background border border-muted/20 text-sm focus:ring-2 focus:ring-primary/50" />
-                )}
-                {category === '' && (
-                  <div className="col-span-2 md:col-span-3 text-sm text-muted italic p-3 bg-muted/5 rounded-md border border-muted/10">
-                    Please select a Provider Category above to specify capacity.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+      <div className="flex-1 flex flex-col justify-center min-h-[50vh]">
+        <h2 className="text-3xl md:text-4xl font-heading text-text mb-8 leading-tight">
+          {currentQ.label}
+        </h2>
 
-        {/* Section 2 */}
-        <section className={currentStep === 2 ? 'block' : 'hidden'}>
-          <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">2. Service Delivery & Current Tech Stack</h3>
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm text-text font-medium mb-2">Service Formats</label>
-              <div className="flex gap-4 flex-wrap">
-                {['In-facility only', 'Home/mobile service only', 'Both'].map(opt => (
-                  <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="radio" name="format" value={opt} className="accent-primary w-4 h-4 border-muted/20" /> {opt}
-                  </label>
-                ))}
-              </div>
+        <div className="w-full max-w-xl animate-fade-in">
+          {(currentQ.type === 'text' || currentQ.type === 'email' || currentQ.type === 'tel' || currentQ.type === 'number') && (
+            <input 
+              type={currentQ.type} 
+              autoFocus
+              className="w-full text-2xl p-4 border-b-2 border-muted/20 bg-transparent focus:outline-none focus:border-primary transition-colors placeholder:text-muted/30"
+              placeholder={currentQ.placeholder}
+              value={formData[currentQ.id] || ''}
+              onChange={(e) => handleValueChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          )}
+
+          {currentQ.type === 'textarea' && (
+            <textarea 
+              autoFocus
+              rows="4"
+              className="w-full text-xl p-4 border-2 border-muted/20 rounded-xl bg-transparent focus:outline-none focus:border-primary transition-colors placeholder:text-muted/30"
+              placeholder={currentQ.placeholder}
+              value={formData[currentQ.id] || ''}
+              onChange={(e) => handleValueChange(e.target.value)}
+            />
+          )}
+
+          {currentQ.type === 'select' && (
+            <select 
+              className="w-full text-2xl p-4 border-b-2 border-muted/20 bg-transparent focus:outline-none focus:border-primary transition-colors cursor-pointer"
+              value={formData[currentQ.id] || ''}
+              onChange={(e) => {
+                handleValueChange(e.target.value);
+                setTimeout(handleNext, 300);
+              }}
+            >
+              <option value="" disabled>Select an option...</option>
+              {currentQ.options.map(opt => (
+                <option key={opt.value} value={opt.value} className="text-base">{opt.label}</option>
+              ))}
+            </select>
+          )}
+
+          {currentQ.type === 'radio' && (
+            <div className="flex flex-col gap-3">
+              {currentQ.options.map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => {
+                    handleValueChange(opt);
+                    setTimeout(handleNext, 300);
+                  }}
+                  className={`text-left p-4 rounded-xl border-2 transition-all text-lg ${formData[currentQ.id] === opt ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-muted/10 hover:border-primary/50'}`}
+                >
+                  {opt}
+                </button>
+              ))}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm text-text font-medium mb-1">Operating Hours</label>
-                <input type="text" name="operatingHours" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="e.g., Mon-Sat 8am-8pm" />
-              </div>
-              <div>
-                <label className="block text-sm text-text font-medium mb-1">Peak Times</label>
-                <input type="text" name="peakTimes" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="e.g., 5pm-8pm" />
-              </div>
+          )}
+
+          {currentQ.type === 'multiselect' && (
+            <div className="flex flex-col gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+              {currentQ.options.map(opt => {
+                const isSelected = (formData[currentQ.id] || []).includes(opt);
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => toggleArrayValue(opt)}
+                    className={`text-left p-4 rounded-xl border-2 transition-all text-lg ${isSelected ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-muted/10 hover:border-primary/50'}`}
+                  >
+                    {opt}
+                  </button>
+                )
+              })}
             </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-2">Current Management Tools</label>
-              <div className="flex flex-col gap-3">
-                {['Pen & paper', 'WhatsApp', 'POS software', 'Existing booking software'].map(opt => (
-                  <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" name="tools" value={opt} className="accent-primary w-4 h-4 border-muted/20" /> {opt}
-                  </label>
-                ))}
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input type="checkbox" name="tools" value="Other" onChange={(e) => setShowOtherTool(e.target.checked)} className="accent-primary w-4 h-4 border-muted/20" /> Other
-                </label>
-              </div>
-              {showOtherTool && (
-                <input type="text" name="otherTool" className="mt-3 w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Please specify..." />
+          )}
+
+          {currentQ.type === 'multiselect_with_other' && (
+            <div className="flex flex-col gap-3">
+              {currentQ.options.map(opt => {
+                const isSelected = (formData[currentQ.id] || []).includes(opt);
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => toggleArrayValue(opt)}
+                    className={`text-left p-4 rounded-xl border-2 transition-all text-lg ${isSelected ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-muted/10 hover:border-primary/50'}`}
+                  >
+                    {opt}
+                  </button>
+                )
+              })}
+              <button
+                onClick={() => toggleArrayValue('Other')}
+                className={`text-left p-4 rounded-xl border-2 transition-all text-lg ${(formData[currentQ.id] || []).includes('Other') ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-muted/10 hover:border-primary/50'}`}
+              >
+                Other
+              </button>
+              {(formData[currentQ.id] || []).includes('Other') && (
+                <input 
+                  type="text" 
+                  autoFocus
+                  placeholder="Please specify..."
+                  className="w-full text-xl p-4 border-b-2 border-muted/20 bg-transparent focus:outline-none focus:border-primary transition-colors mt-2"
+                  value={otherToolText}
+                  onChange={(e) => setOtherToolText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
               )}
             </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Walk-in vs. Appointment Ratio (%)</label>
-              <input type="text" name="walkInRatio" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="e.g., 80% walk-in vs. 20% appointment" />
-            </div>
-          </div>
-        </section>
-
-        {/* Section 3 */}
-        <section className={currentStep === 3 ? 'block' : 'hidden'}>
-          <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">3. Operational Pain Points & Marketplace Alignment</h3>
-          <div className="space-y-6">
-             <div>
-              <label className="block text-sm text-text font-medium mb-2">Business Challenges</label>
-              <div className="flex flex-col gap-4">
-                {[
-                  'Off-peak empty slots or underutilized gym capacity.',
-                  'Customer no-shows and last-minute cancellations.',
-                  'Managing customer queues during peak hours.',
-                  'Handling payment collection, reconciliation, or tracking daily income.'
-                ].map(opt => (
-                  <label key={opt} className="flex items-start gap-3 text-sm cursor-pointer">
-                    <input type="checkbox" name="challenges" value={opt} className="accent-primary w-4 h-4 rounded mt-1 border-muted/20" /> {opt}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-2">Willingness to Accept Network Members (GlowSync subscribers)</label>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="network" value="Yes, very open" className="accent-primary w-4 h-4 border-muted/20" /> Yes, very open</label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="network" value="Need more details" className="accent-primary w-4 h-4 border-muted/20" /> Need more details</label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="network" value="No" className="accent-primary w-4 h-4 border-muted/20" /> No</label>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-2">Home Care Dispatch (Interest in sending staff for home appointments)</label>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="dispatch" value="Yes" className="accent-primary w-4 h-4 border-muted/20" /> Yes</label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="dispatch" value="No" className="accent-primary w-4 h-4 border-muted/20" /> No</label>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 4 */}
-        <section className={currentStep === 4 ? 'block' : 'hidden'}>
-          <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">4. Financial Expectations & Commercial Terms</h3>
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Standard Pricing Sheet (Base rates for core services)</label>
-              <textarea name="pricingSheet" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" rows="3" placeholder="e.g., standard gym day pass/monthly fee, standard haircut, washing & styling"></textarea>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm text-text font-medium mb-1">Preferred Payout Cycle</label>
-                <select name="payoutCycle" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50">
-                  <option value="">Select cycle</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Bi-weekly</option>
-                  <option value="monthly">Monthly</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-text font-medium mb-1">Preferred Payout Channel</label>
-                <select name="payoutChannel" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50">
-                  <option value="">Select channel</option>
-                  <option value="bank">Direct bank transfer</option>
-                  <option value="virtual">Virtual settlement account</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm text-text font-medium mb-2">Discounting for Guaranteed Volume (Offer discounted rates to GlowSync for guaranteed foot traffic?)</label>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="discount" value="Yes" className="accent-primary w-4 h-4 border-muted/20" /> Yes</label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="discount" value="No" className="accent-primary w-4 h-4 border-muted/20" /> No</label>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 5 */}
-        <section className={currentStep === 5 ? 'block' : 'hidden'}>
-          <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">5. Recommendations</h3>
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm text-text font-medium mb-1">Recommend another Provider (Optional)</label>
-              <p className="text-muted text-sm mb-3">Know another great gym, salon, or barbershop we should partner with?</p>
-              <input type="text" name="recommendation" className="w-full p-3 rounded-md bg-background border border-muted/20 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Provider Name & Location/Contact" />
-            </div>
-          </div>
-        </section>
-
-        {/* Section 6 */}
-        <section className={currentStep === 6 ? 'block' : 'hidden'}>
-          <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">6. Get Involved</h3>
-          <div className="space-y-4">
-            <label className="flex items-start gap-3 text-sm cursor-pointer bg-primary/5 p-4 rounded-md border border-primary/20">
-              <input type="checkbox" name="joinWaitlist" className="accent-primary w-5 h-5 mt-0.5 border-muted/20" />
-              <span><strong>Join the GlowSync Provider Waitlist!</strong> Secure your spot for early onboarding, waived early fees, and priority placement in your city when we launch.</span>
-            </label>
-            <label className="flex items-start gap-3 text-sm cursor-pointer bg-background p-4 rounded-md border border-muted/20">
-              <input type="checkbox" name="consentContact" className="accent-primary w-5 h-5 mt-0.5 border-muted/20" />
-              <span><strong>Let's partner up.</strong> I consent to being contacted via email or phone for onboarding, partnership opportunities, and beta testing feedback.</span>
-            </label>
-          </div>
-        </section>
-
-        {/* Navigation Footer */}
-        <div className="flex justify-between gap-4 pt-6 mt-8 border-t border-muted/10">
-          {currentStep > 1 && (
-            <button type="button" onClick={handlePrev} className="px-6 py-3 rounded-full border border-muted/20 text-text font-medium hover:bg-muted/5 transition-colors">
-              Back
-            </button>
           )}
-          
-          {currentStep < 6 ? (
-            <button type="button" onClick={handleNext} className="ml-auto px-8 py-3 rounded-full bg-primary text-white font-medium hover:opacity-90 transition-opacity shadow-soft">
-              Next
-            </button>
-          ) : (
-            <button type="submit" disabled={isSubmitting} className="ml-auto px-8 py-3 rounded-full bg-primary text-white font-medium hover:opacity-90 transition-opacity shadow-soft disabled:opacity-50">
-              {isSubmitting ? "Submitting..." : "Submit Survey"}
-            </button>
+
+          {currentQ.type === 'multiselect_checkboxes' && (
+            <div className="flex flex-col gap-4">
+              {currentQ.options.map(opt => {
+                const isSelected = (formData[currentQ.id] || []).includes(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => toggleArrayValue(opt.value)}
+                    className={`text-left p-5 rounded-xl border-2 transition-all ${isSelected ? 'border-primary bg-primary/5' : 'border-muted/10 hover:border-primary/50'}`}
+                  >
+                    <div className={`text-lg font-medium mb-2 flex items-center gap-3 ${isSelected ? 'text-primary' : 'text-text'}`}>
+                      <div className={`w-6 h-6 rounded flex items-center justify-center border-2 ${isSelected ? 'bg-primary border-primary text-white' : 'border-muted/30'}`}>
+                        {isSelected && (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                        )}
+                      </div>
+                      {opt.label}
+                    </div>
+                    <div className="text-sm text-muted ml-9">{opt.desc}</div>
+                  </button>
+                )
+              })}
+            </div>
           )}
         </div>
-      </form>
+      </div>
 
-      {/* Success Modal */}
+      <div className="flex items-center mt-12 pt-6 gap-4">
+        {currentStep > 0 && (
+          <button 
+            onClick={handlePrev}
+            className="w-12 h-12 flex items-center justify-center rounded-full border border-muted/20 hover:bg-muted/5 transition-colors"
+          >
+            <svg className="w-6 h-6 text-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+          </button>
+        )}
+        
+        <button 
+          onClick={handleNext}
+          disabled={isSubmitting}
+          className="ml-auto flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-full font-heading text-lg hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
+        >
+          {isSubmitting ? "Submitting..." : (currentStep === questions.length - 1 ? "Submit Survey" : "OK")}
+          {!isSubmitting && currentStep < questions.length - 1 && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+          )}
+        </button>
+      </div>
+
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-surface p-8 rounded-lg max-w-md w-full shadow-xl text-center">
-            <h3 className="text-2xl font-heading text-primary mb-2">Thank You!</h3>
-            <p className="text-muted mb-6">Your responses have been recorded successfully. We'll be in touch soon!</p>
+            <h3 className="text-3xl font-heading text-primary mb-4">Thank You!</h3>
+            <p className="text-lg text-muted mb-8">Your responses have been recorded successfully. We'll be in touch soon!</p>
             <div className="space-y-4">
-              <button onClick={handleShare} className="w-full bg-primary/10 text-primary font-medium py-3 px-4 rounded-full hover:bg-primary/20 transition-colors">
+              <button onClick={handleShare} className="w-full bg-primary/10 text-primary font-medium py-4 px-6 rounded-xl hover:bg-primary/20 transition-colors">
                 Share Survey Link
               </button>
-              <button onClick={() => setShowModal(false)} className="w-full border border-muted/20 text-text font-medium py-3 px-4 rounded-full hover:bg-muted/10 transition-colors">
-                Close
+              <button onClick={() => window.location.reload()} className="w-full border border-muted/20 text-text font-medium py-4 px-6 rounded-xl hover:bg-muted/10 transition-colors">
+                Back to Start
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Message Modal */}
       {messageModal.show && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-surface p-8 rounded-lg max-w-md w-full shadow-xl text-center">
-            <h3 className={`text-2xl font-heading mb-2 ${messageModal.type === 'error' ? 'text-red-600' : 'text-primary'}`}>
-              {messageModal.type === 'error' ? 'Oops!' : 'Success!'}
-            </h3>
-            <p className="text-muted mb-6">{messageModal.message}</p>
-            <div className="space-y-4">
-              <button onClick={() => setMessageModal({ show: false, type: 'error', message: '' })} className={`w-full font-medium py-3 px-4 rounded-full transition-colors text-white ${messageModal.type === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:opacity-90'}`}>
-                Close
+        <div className="fixed top-4 right-4 z-50 animate-fade-in-up">
+          <div className={`p-4 rounded-md shadow-lg ${messageModal.type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+            <div className="flex justify-between items-center gap-4">
+              <p>{messageModal.message}</p>
+              <button onClick={() => setMessageModal({ show: false, type: '', message: '' })} className="opacity-80 hover:opacity-100">
+                &times;
               </button>
             </div>
           </div>
