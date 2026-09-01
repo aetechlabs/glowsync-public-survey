@@ -31,6 +31,13 @@ function App() {
       <main>
         {activeTab === 'customer' ? <CustomerSurvey /> : <ProviderSurvey />}
       </main>
+
+      <div className="fixed bottom-4 right-4 z-50">
+        <a href="https://aetechlabs.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-lg border border-border hover:shadow-xl transition-shadow">
+          <span className="text-xs text-muted font-medium">Powered by</span>
+          <img src="https://aetechlabs.com/logos/logo-dark.png" alt="Aetech Research Labs Limited" className="h-4" />
+        </a>
+      </div>
     </div>
   )
 }
