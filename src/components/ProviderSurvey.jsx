@@ -179,9 +179,15 @@ export default function ProviderSurvey() {
       </div>
 
       <div className="flex-1 flex flex-col justify-center min-h-[50vh]">
-        <h2 className="text-3xl md:text-4xl font-heading text-text mb-8 leading-tight">
+        <h2 className="text-3xl md:text-4xl font-heading text-text mb-2 leading-tight">
           {currentQ.label}
         </h2>
+        
+        {currentQ.type.startsWith('multiselect') ? (
+          <p className="text-muted text-lg mb-8">Select all that apply</p>
+        ) : (
+          <div className="mb-8"></div>
+        )}
 
         <div className="w-full max-w-xl animate-fade-in">
           {(currentQ.type === 'text' || currentQ.type === 'email' || currentQ.type === 'tel' || currentQ.type === 'number') && (
