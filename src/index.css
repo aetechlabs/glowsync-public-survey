@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #C8857A;
+  --color-background: #FBF8F4;
+  --color-surface: #FFFFFF;
+  --color-text: #3A2E2B;
+  --color-muted: #8D7B77;
+  --color-accent: #6B8E7B;
+
+  --font-heading: Outfit, sans-serif;
+  --font-body: Satoshi, sans-serif;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+
+  --shadow-soft: 0 12px 32px rgba(58, 46, 43, 0.06);
+  --shadow-floating: 0 20px 48px rgba(200, 133, 122, 0.15);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
