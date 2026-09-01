@@ -6,6 +6,31 @@ export default function ProviderSurvey() {
   const [messageModal, setMessageModal] = useState({ show: false, type: 'error', message: '' });
   const [showOtherTool, setShowOtherTool] = useState(false);
   const [category, setCategory] = useState('');
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const handleNext = () => {
+    if (currentStep === 1) {
+      const form = document.getElementById('provider-form');
+      if (form) {
+        const inputs = form.querySelectorAll('input[required], select[required]');
+        let valid = true;
+        inputs.forEach(input => {
+          if (!input.checkValidity()) {
+            input.reportValidity();
+            valid = false;
+          }
+        });
+        if (!valid) return;
+      }
+    }
+    setCurrentStep(s => Math.min(6, s + 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePrev = () => {
+    setCurrentStep(s => Math.max(1, s - 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,12 +107,23 @@ export default function ProviderSurvey() {
   return (
     <div className="max-w-3xl mx-auto p-6 md:p-8 bg-surface shadow-soft rounded-lg">
       <h2 className="text-2xl font-heading text-text mb-2">Provider Survey (Supply Side)</h2>
-      <p className="text-muted mb-8">Partner with GlowSync to grow your beauty or grooming business.</p>
+      <p className="text-muted mb-8">Help us build the perfect platform for your business.</p>
       
-      <form className="space-y-10" onSubmit={handleSubmit}>
+      {/* Progress Bar */}
+      <div className="mb-8">
+        <div className="flex justify-between text-xs text-muted mb-2 font-medium">
+          <span>Step {currentStep} of 6</span>
+          <span>{Math.round((currentStep / 6) * 100)}%</span>
+        </div>
+        <div className="w-full bg-muted/10 rounded-full h-2">
+          <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${(currentStep / 6) * 100}%` }}></div>
+        </div>
+      </div>
+
+      <form id="provider-form" className="space-y-10" onSubmit={handleSubmit}>
         
         {/* Section 1 */}
-        <section>
+        <section className={currentStep === 1 ? 'block' : 'hidden'}>
           <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">1. Business Profile & Operations</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -156,7 +192,7 @@ export default function ProviderSurvey() {
         </section>
 
         {/* Section 2 */}
-        <section>
+        <section className={currentStep === 2 ? 'block' : 'hidden'}>
           <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">2. Service Delivery & Current Tech Stack</h3>
           <div className="space-y-6">
             <div>
@@ -203,7 +239,7 @@ export default function ProviderSurvey() {
         </section>
 
         {/* Section 3 */}
-        <section>
+        <section className={currentStep === 3 ? 'block' : 'hidden'}>
           <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">3. Operational Pain Points & Marketplace Alignment</h3>
           <div className="space-y-6">
              <div>
@@ -240,7 +276,7 @@ export default function ProviderSurvey() {
         </section>
 
         {/* Section 4 */}
-        <section>
+        <section className={currentStep === 4 ? 'block' : 'hidden'}>
           <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">4. Financial Expectations & Commercial Terms</h3>
           <div className="space-y-6">
             <div>
@@ -278,7 +314,7 @@ export default function ProviderSurvey() {
         </section>
 
         {/* Section 5 */}
-        <section>
+        <section className={currentStep === 5 ? 'block' : 'hidden'}>
           <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">5. Recommendations</h3>
           <div className="space-y-6">
             <div>
@@ -290,7 +326,7 @@ export default function ProviderSurvey() {
         </section>
 
         {/* Section 6 */}
-        <section>
+        <section className={currentStep === 6 ? 'block' : 'hidden'}>
           <h3 className="text-xl font-heading text-primary border-b border-muted/20 pb-2 mb-6">6. Get Involved</h3>
           <div className="space-y-4">
             <label className="flex items-start gap-3 text-sm cursor-pointer bg-primary/5 p-4 rounded-md border border-primary/20">
@@ -304,9 +340,24 @@ export default function ProviderSurvey() {
           </div>
         </section>
 
-        <button type="submit" disabled={isSubmitting} className="w-full bg-primary text-white font-heading py-4 px-6 rounded-full hover:opacity-90 transition-opacity shadow-soft text-lg disabled:opacity-50">
-          {isSubmitting ? "Submitting..." : "Submit Provider Survey"}
-        </button>
+        {/* Navigation Footer */}
+        <div className="flex justify-between gap-4 pt-6 mt-8 border-t border-muted/10">
+          {currentStep > 1 && (
+            <button type="button" onClick={handlePrev} className="px-6 py-3 rounded-full border border-muted/20 text-text font-medium hover:bg-muted/5 transition-colors">
+              Back
+            </button>
+          )}
+          
+          {currentStep < 6 ? (
+            <button type="button" onClick={handleNext} className="ml-auto px-8 py-3 rounded-full bg-primary text-white font-medium hover:opacity-90 transition-opacity shadow-soft">
+              Next
+            </button>
+          ) : (
+            <button type="submit" disabled={isSubmitting} className="ml-auto px-8 py-3 rounded-full bg-primary text-white font-medium hover:opacity-90 transition-opacity shadow-soft disabled:opacity-50">
+              {isSubmitting ? "Submitting..." : "Submit Survey"}
+            </button>
+          )}
+        </div>
       </form>
 
       {/* Success Modal */}
