@@ -11,6 +11,7 @@ const NIGERIAN_STATES = [
 export default function CustomerSurvey() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [messageModal, setMessageModal] = useState({ show: false, type: 'error', message: '' });
   const [showOtherService, setShowOtherService] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -58,11 +59,11 @@ export default function CustomerSurvey() {
         e.target.reset();
         setShowOtherService(false);
       } else {
-        alert("Something went wrong. Please try again.");
+        setMessageModal({ show: true, type: 'error', message: "Something went wrong. Please try again." });
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to submit. Please check your connection.");
+      setMessageModal({ show: true, type: 'error', message: "Failed to submit. Please check your connection." });
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +77,7 @@ export default function CustomerSurvey() {
       }).catch(console.error);
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      setMessageModal({ show: true, type: 'success', message: "Link copied to clipboard!" });
     }
   };
 
@@ -319,6 +320,23 @@ export default function CustomerSurvey() {
                 Share Survey Link
               </button>
               <button onClick={() => setShowModal(false)} className="w-full border border-muted/20 text-text font-medium py-3 px-4 rounded-full hover:bg-muted/10 transition-colors">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message Modal */}
+      {messageModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface p-8 rounded-lg max-w-md w-full shadow-xl text-center">
+            <h3 className={`text-2xl font-heading mb-2 ${messageModal.type === 'error' ? 'text-red-600' : 'text-primary'}`}>
+              {messageModal.type === 'error' ? 'Oops!' : 'Success!'}
+            </h3>
+            <p className="text-muted mb-6">{messageModal.message}</p>
+            <div className="space-y-4">
+              <button onClick={() => setMessageModal({ show: false, type: 'error', message: '' })} className={`w-full font-medium py-3 px-4 rounded-full transition-colors text-white ${messageModal.type === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:opacity-90'}`}>
                 Close
               </button>
             </div>
