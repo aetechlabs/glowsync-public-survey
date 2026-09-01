@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="min-h-screen p-4 md:p-8">
       <header className="max-w-2xl mx-auto mb-8 text-center">
-        <img src="/logo.png" alt="GlowSync Logo" className="w-24 h-24 mx-auto mb-4 object-contain" />
+        <img src="/logo.png?v=2" alt="GlowSync Logo" className="w-24 h-24 mx-auto mb-4 object-contain" />
         <h1 className="text-4xl font-heading text-text mb-4">GlowSync</h1>
         <p className="text-muted">Help us build the perfect booking experience.</p>
         
